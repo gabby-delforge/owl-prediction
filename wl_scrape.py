@@ -17,7 +17,12 @@ page_response = requests.get(url, timeout=5)
 page_content = BeautifulSoup(page_response.content, "html.parser")
 allRows = []
 mapNames = []
-rows = page_content.find_all("tr")[15:]
+rows = page_content.find_all("tr")
+for i in range(len(rows)):
+    player = [re.findall(r"[^\n\t]+", rows[i].text)]
+    if player[0][0] == "Player-Hero Combo of the match":
+        rows = rows[i+1:]
+        break
 
 data = []
 maps_raw = page_content.findAll("div", {"class": "mapname"})
