@@ -99,8 +99,3 @@ class Player:
     def __init__(self):
         self.playtime = 0
 
-
-RAW_DATA = retrieve_data()
-OWL = retrieve_classes()
-update_data()
-update_classes()
