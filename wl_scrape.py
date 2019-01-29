@@ -23,30 +23,36 @@ map_rosters- List of
 
 matches = src.s1_match_IDs
 
+
 def update_data(match_ID):
+    # Fetching page data
     url = 'https://www.winstonslab.com/matches/match.php?id=' + str(match_ID)
     page_response = requests.get(url, timeout=5)
     page_content = BeautifulSoup(page_response.content, "html.parser")
 
-
+    # Getting the team names
     team1 = re.findall(r"[^\n\t]+", page_content.find("div", {"class": "team1-name"}).text)[0]
     team2 = re.findall(r"[^\n\t]+", page_content.find("div", {"class": "team2-name"}).text)[0]
 
-    data = []
-    allRows = []
-    mapNames = []
     rows = page_content.find_all("tr")
+
+    # Filtering initial table out
     for i in range(len(rows)):
         player = [re.findall(r"[^\n\t]+", rows[i].text)]
         if player[0][0] == "Player-Hero Combo of the match":
             rows = rows[i+1:]
             break
+
+    # Getting map names
     maps_raw = page_content.findAll("div", {"class": "mapname"})
     maps = [maps_raw[i].attrs['title'] for i in range(len(maps_raw)//2)]
+
+    # Filling data and map rosters
     map_idx = -1
     count = 0
     map_rosters = []
     p = []
+    data = []
     team = team2
     for r in rows:
         player = [re.findall(r"[^\n\t]+", r.text)][0]
@@ -61,7 +67,10 @@ def update_data(match_ID):
         if count%12 == 0:
             map_idx += 1
         p.append(player[0])
-        player.insert(0, maps[map_idx])
+        try:
+            player.insert(0, maps[map_idx])
+        except:
+            print(match_ID)
         player.insert(0, match_ID)
         data.append(player)
         count += 1
@@ -85,10 +94,10 @@ m_writer.writerow(['Match ID', 'Map', 'Player', 'K', 'D', '+/-', 'Ults', 'FK Dif
 n_writer.writerow(['Match_ID', 'Map', 'Team','Player 1','Player 2','Player 3', 'Player 4','Player 5', 'Player 6'])
 
 for item in matches:
-    data, map_rosters = update_data(id)
+    data, rosters = update_data(item)
     for r in data:
         m_writer.writerow(r)
-    for r in map_rosters:
+    for r in rosters:
         n_writer.writerow(r)
 
 m.close()
